@@ -2,6 +2,8 @@ from __future__ import annotations
 from typing import NoReturn
 from IMLearn.base import BaseEstimator
 import numpy as np
+from sklearn import linear_model
+from sklearn.metrics import mean_squared_error, log_loss
 
 
 class AgodaCancellationEstimator(BaseEstimator):
@@ -16,12 +18,13 @@ class AgodaCancellationEstimator(BaseEstimator):
         Parameters
         ----------
 
-
         Attributes
         ----------
 
         """
         super().__init__()
+        self.model = linear_model.LogisticRegression(max_iter=300)
+        self.coefs = None
 
     def _fit(self, X: np.ndarray, y: np.ndarray) -> NoReturn:
         """
@@ -39,7 +42,8 @@ class AgodaCancellationEstimator(BaseEstimator):
         -----
 
         """
-        pass
+        self.model.fit(X, y)
+        self.coefs = self.model.coef_
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -55,7 +59,7 @@ class AgodaCancellationEstimator(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        return np.zeros(X.shape[0])
+        return self.model.predict(X)
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -74,4 +78,17 @@ class AgodaCancellationEstimator(BaseEstimator):
         loss : float
             Performance under loss function
         """
-        pass
+
+        print(y)
+        prediction = self.predict(X)
+        print("logistic loss:", log_loss(y, prediction))
+        return mean_squared_error(y, prediction)
+
+        # tot_loss = 0
+        # print(X)
+        # X = np.array(X)
+        # for index, row in enumerate(X):
+        #     print(row)
+        #     tot_loss += np.power(self.predict(np.ndarray(row)) - y[index], 2)
+        #
+        # return tot_loss

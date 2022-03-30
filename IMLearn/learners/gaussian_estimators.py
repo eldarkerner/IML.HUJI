@@ -6,8 +6,6 @@ import numpy
 import numpy as np
 from numpy.linalg import inv, det, slogdet
 
-import IMLearn.learners
-
 
 class UnivariateGaussian:
     """
@@ -91,19 +89,15 @@ class UnivariateGaussian:
             raise ValueError("Estimator must first be fitted before calling `pdf` function")
 
         # raise NotImplementedError()
-        pdfs = IMLearn.learners.UnivariateGaussian.calc_pdf(self.mu_, self.var_, X, lambda q: q)
-        return pdfs
 
-    @staticmethod
-    def calc_pdf(mu: float, var: float, X: np.ndarray, func) -> np.ndarray:
-        func_pdfs = np.zeros(len(X))
+        pdfs = np.zeros(len(X))
         for index, x in enumerate(X):
-            prefix = 1 / (2 * math.pi * var) ** 0.5
-            exponent = math.exp(-(((x - mu) ** 2) / (2 * var)))
+            prefix = 1 / (2 * math.pi * self.var_) ** 0.5
+            exponent = math.exp(-(((x - self.mu_) ** 2) / (2 * self.var_)))
 
-            func_pdfs[index] = func(prefix * exponent)
+            pdfs[index] = prefix * exponent
 
-        return func_pdfs
+        return pdfs
 
     @staticmethod
     def log_likelihood(mu: float, sigma: float, X: np.ndarray) -> float:
@@ -126,7 +120,13 @@ class UnivariateGaussian:
         """
         # raise NotImplementedError()
 
-        log_pdfs = IMLearn.learners.UnivariateGaussian.calc_pdf(mu, sigma ** 2, X, lambda q: np.log(q))
+        log_pdfs = np.zeros(len(X))
+        for index, x in enumerate(X):
+            prefix = 1 / (2 * math.pi * sigma) ** 0.5
+            exponent = math.exp(-(((x - mu) ** 2) / (2 * sigma)))
+
+            log_pdfs[index] = np.log(prefix * exponent)
+
         return log_pdfs.sum()
 
 
@@ -202,19 +202,28 @@ class MultivariateGaussian:
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `pdf` function")
         # raise NotImplementedError()
-        return IMLearn.learners.MultivariateGaussian.calc_pdf(self.mu_, self.cov_, X, lambda q: q)
 
-    @staticmethod
-    def calc_pdf(mu: np.ndarray, cov: np.ndarray, X: np.ndarray, func):
-        func_pdfs = np.zeros(X.shape)
+        pdfs = np.zeros(X.shape)
         for index, x in enumerate(X):
-            two_pi_powered = (2 * math.pi) ** len(mu)
-            prefix = 1 / (two_pi_powered * np.linalg.det(cov)) ** 0.5
-            exponent = np.exp(-0.5 * ((np.transpose(x - mu)).dot(np.linalg.inv(cov)).dot(x - mu)))
+            two_pi_powered = (2 * math.pi) ** len(self.mu_)
+            prefix = 1 / (two_pi_powered * np.linalg.det(self.cov_)) ** 0.5
+            exponent = np.exp(-0.5 * ((np.transpose(x - self.mu_)).dot(np.linalg.inv(self.cov_)).dot(x - self.mu_)))
 
-            func_pdfs[index] = func(prefix * exponent)
+            pdfs[index] = prefix * exponent
 
-        return func_pdfs
+        return pdfs
+
+    # @staticmethod
+    # def calc_pdf(mu: np.ndarray, cov: np.ndarray, X: np.ndarray, func):
+    #     func_pdfs = np.zeros(X.shape)
+    #     for index, x in enumerate(X):
+    #         two_pi_powered = (2 * math.pi) ** len(mu)
+    #         prefix = 1 / (two_pi_powered * np.linalg.det(cov)) ** 0.5
+    #         exponent = np.exp(-0.5 * ((np.transpose(x - mu)).dot(np.linalg.inv(cov)).dot(x - mu)))
+    #
+    #         func_pdfs[index] = func(prefix * exponent)
+    #
+    #     return func_pdfs
 
     @staticmethod
     def log_likelihood(mu: np.ndarray, cov: np.ndarray, X: np.ndarray) -> float:

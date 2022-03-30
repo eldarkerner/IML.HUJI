@@ -1,5 +1,7 @@
+import IMLearn.utils
 from IMLearn.utils import split_train_test
 from IMLearn.learners.regressors import LinearRegression
+import matplotlib.pyplot as plt
 
 from typing import NoReturn
 import numpy as np
@@ -23,7 +25,14 @@ def load_data(filename: str):
     Design matrix and response vector (prices) - either as a single
     DataFrame or a Tuple[DataFrame, Series]
     """
-    raise NotImplementedError()
+    # raise NotImplementedError()
+
+    data = pd.read_csv(filename)
+
+    y_label = "price"
+    x = data.drop(columns=[y_label, "id"])
+    y = data[y_label]
+    return x, y
 
 
 def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") -> NoReturn:
@@ -43,19 +52,43 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
     output_path: str (default ".")
         Path to folder in which plots are saved
     """
-    raise NotImplementedError()
+    # raise NotImplementedError()
+
+    varY = np.std(y)
+
+    choosen_features = ["sqft_living", "lat"]
+
+    for i, feature_name in enumerate(choosen_features):
+        feature = X.loc[:, feature_name]
+
+        var_feature = np.std(feature)
+        cov_featureY = np.cov(feature, y)
+
+        pearson_correlation = cov_featureY / (var_feature * varY)
+
+        print(feature.shape)
+        print(pearson_correlation)
+        print(varY, var_feature)
+        print(cov_featureY)
+
+        plt.plot(feature, pearson_correlation)
+        plt.title("Pearson Correlation between " + feature_name + " and the response")
+        plt.savefig(output_path + feature_name)
 
 
 if __name__ == '__main__':
     np.random.seed(0)
     # Question 1 - Load and preprocessing of housing prices dataset
-    raise NotImplementedError()
+    # raise NotImplementedError()
+    x, y = load_data("C:/Users/user/IML.HUJI/datasets/house_prices.csv")
 
     # Question 2 - Feature evaluation with respect to response
-    raise NotImplementedError()
+    # raise NotImplementedError()
+    feature_evaluation(x, y, "ex2_plots/")
 
     # Question 3 - Split samples into training- and testing sets.
-    raise NotImplementedError()
+    # raise NotImplementedError()
+    train_x, train_y, test_x, test_y = IMLearn.utils.split_train_test(x, y, 0.75)
 
     # Question 4 - Fit model over increasing percentages of the overall training data
     # For every percentage p in 10%, 11%, ..., 100%, repeat the following 10 times:
@@ -64,4 +97,18 @@ if __name__ == '__main__':
     #   3) Test fitted model over test set
     #   4) Store average and variance of loss over test set
     # Then plot average loss as function of training size with error ribbon of size (mean-2*std, mean+2*std)
-    raise NotImplementedError()
+    # raise NotImplementedError()
+
+    linear_regression = LinearRegression()
+
+    losses = []
+    for i in range(10, 101):
+        loss_i = []
+        for r in range(1, 11):
+            sampled_train_x = train_x.sample(frac=(i / 100.0))
+            sampled_train_y = train_y.sample(frac=(i / 100.0))
+            linear_regression.fit(pd.to_numpy(sampled_train_x), pd.to_numpy(sampled_train_y))
+            loss_i.append(linear_regression.loss(linear_regression.predict(test_x), test_y))
+
+        losses.append([np.mean(loss_i), np.var(loss_i)])
+
