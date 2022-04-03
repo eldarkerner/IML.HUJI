@@ -1,9 +1,12 @@
 from __future__ import annotations
 from typing import NoReturn
+
+import sklearn.metrics
+
 from IMLearn.base import BaseEstimator
 import numpy as np
 from sklearn import linear_model
-from sklearn.metrics import mean_squared_error, log_loss
+from sklearn.metrics import mean_squared_error, precision_score, recall_score
 
 
 class AgodaCancellationEstimator(BaseEstimator):
@@ -81,7 +84,8 @@ class AgodaCancellationEstimator(BaseEstimator):
 
         print(y)
         prediction = self.predict(X)
-        print("logistic loss:", log_loss(y, prediction))
+        print("logistic loss - precision:", precision_score(y, prediction))
+        print("logistic loss - recall:", recall_score(y, prediction))
         return mean_squared_error(y, prediction)
 
         # tot_loss = 0

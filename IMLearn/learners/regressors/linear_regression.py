@@ -1,11 +1,8 @@
 from __future__ import annotations
 from typing import NoReturn
 
-from sklearn import linear_model
-from IMLearn import BaseEstimator
-
 import IMLearn.metrics
-# from ...base import BaseEstimator
+from ...base import BaseEstimator
 import numpy as np
 from numpy.linalg import pinv
 
@@ -112,23 +109,3 @@ class LinearRegression(BaseEstimator):
 
         y_pred = self._predict(X)
         return IMLearn.metrics.mean_square_error(y, y_pred)
-
-
-if __name__ == '__main__':
-    np.random.seed(0)
-    X = 5 * np.random.random_sample([3, 3])
-    y = 5 * np.random.random_sample([3, 1])
-    y = y.reshape([-1, 1])
-    pred = 5 * np.random.random_sample([3, 3])
-
-    reg = linear_model.LinearRegression()
-    reg.fit(X, y)
-
-    print('\nsklearn LR Corfficients: \n', reg.coef_)
-    # print('\nsklearn LR variance score: {}'.format(reg.score(x_test,y_test)))
-
-    my_reg = LinearRegression()
-    my_reg.fit(X, y)
-    print('\n MY Corfficients: \n', my_reg.coefs_)
-    print('\n MY reg: \n', my_reg.predict(pred))
-    print('\n SKlern reg: \n', reg.predict(pred))
