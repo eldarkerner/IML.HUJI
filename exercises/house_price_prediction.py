@@ -27,15 +27,15 @@ def load_data(filename: str):
     """
     # raise NotImplementedError()
     y_label = "price"
-    full_data = pd.read_csv(filename).drop_duplicates()
+    full_data = pd.read_csv(filename).dropna().drop_duplicates()
 
     full_data = full_data.drop(columns=["id", "lat", "long", "date"])
 
     # obtaining the data is legal to the given rules and parameters
-    for column in ["price", "sqft_living", "sqft_lot", "yr_built", "sqft_living15", "sqft_lot15"]:
+    for column in ["price", "sqft_living", "sqft_lot", "yr_built", "sqft_living15", "sqft_lot15", "sqft_above"]:
         full_data = full_data[full_data[column] > 0]
 
-    for column in ["bathrooms", "floors", "sqft_basement", "yr_renovated", "sqft_above"]:
+    for column in ["bathrooms", "floors", "sqft_basement", "yr_renovated"]:
         full_data = full_data[full_data[column] >= 0]
 
     full_data = full_data[full_data["waterfront"].isin([0, 1]) &
@@ -107,7 +107,7 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
     #     plt.savefig(output_path + feature_name)
 
     X = X.loc[:, ~(X.columns.str.contains('^zipcode_', case=False) |
-                   X.columns.str.contains('^decade_built_', case=False))]
+                   X.columns.str.contains('^ten_years_built_', case=False))]
 
     stdY = np.std(y)
     for feature_name in X:
@@ -118,35 +118,46 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
         print(feature_name)
         print(pearson_correlation)
 
-        plt.scatter(X[feature_name], y)
-        plt.title("Pearson Correlation between " + feature_name + " and the response: " +
-                  str(pearson_correlation) + "\n")
-        plt.savefig(output_path + "/" + feature_name)
+        # plt.scatter(X[feature_name], y)
+        # plt.title("Pearson Correlation: " + feature_name + " and the response: " +
+        #           str(pearson_correlation) + "\n")
+        # # fig.write_image(output_path + "/" + feature_name + ".png")
+        # plt.show()
+        # plt.savefig(output_path + "/" + feature_name)
 
+        fig = go.Figure([go.Scatter(x=X[feature_name],
+                                    y=y,
+                                    mode='markers')])
 
-def q4():
-    fraction = np.linspace(0.1, 1, 91)
-    lr = LinearRegression()
-    con = np.zeros(91)
-    mean_loss = np.zeros(91)
+        fig.update_xaxes(title_text=feature_name + " values")
+        fig.update_yaxes(title_text="response values")
+        fig.update_layout(title_text="Pearson Correlation: " + feature_name + " and the response: " +
+                                     str(pearson_correlation) + "\n")
+        fig.write_image(output_path + "/" + feature_name + ".png")
 
-    for j in range(len(fraction)):
-        loss = np.zeros(10)
-        for i in range(10):
-            train_x["price"] = train_y
-            sampled_train = train_x.sample(frac=fraction[j])
-            # print(train_x)
-            # print(sampled_train)
-            lr.fit(sampled_train.drop("price", axis=1), sampled_train.price)
-            loss[i] = lr.loss(test_x.to_numpy(), test_y.to_numpy())
-        con[j] = 2 * np.std(loss)
-        mean_loss[j] = np.mean(loss)
-
-    fig = go.Figure(data=go.Scatter(x=100 * fraction, y=mean_loss,
-                                    error_y=dict(type='data', array=con, visible=True)),
-                    layout=go.Layout(title="AAAA"))
-
-    fig.show()
+# def q4():
+#     fraction = np.linspace(0.1, 1, 91)
+#     lr = LinearRegression()
+#     con = np.zeros(91)
+#     mean_loss = np.zeros(91)
+#
+#     for j in range(len(fraction)):
+#         loss = np.zeros(10)
+#         for i in range(10):
+#             train_x["price"] = train_y
+#             sampled_train = train_x.sample(frac=fraction[j])
+#             # print(train_x)
+#             # print(sampled_train)
+#             lr.fit(sampled_train.drop("price", axis=1), sampled_train.price)
+#             loss[i] = lr.loss(test_x.to_numpy(), test_y.to_numpy())
+#         con[j] = 2 * np.std(loss)
+#         mean_loss[j] = np.mean(loss)
+#
+#     fig = go.Figure(data=go.Scatter(x=100 * fraction, y=mean_loss,
+#                                     error_y=dict(type='data', array=con, visible=True)),
+#                     layout=go.Layout(title="AAAA"))
+#
+#     fig.show()
 
 
 if __name__ == '__main__':
@@ -161,7 +172,7 @@ if __name__ == '__main__':
 
     # Question 3 - Split samples into training- and testing sets.
     # raise NotImplementedError()
-    train_x, train_y, test_x, test_y = IMLearn.utils.split_train_test(x, y, 0.75)
+    train_x, train_y, test_x, test_y = split_train_test(x, y, 0.75)
 
     # Question 4 - Fit model over increasing percentages of the overall training data
     # For every percentage p in 10%, 11%, ..., 100%, repeat the following 10 times:
@@ -171,7 +182,7 @@ if __name__ == '__main__':
     #   4) Store average and variance of loss over test set
     # Then plot average loss as function of training size with error ribbon of size (mean-2*std, mean+2*std)
     # raise NotImplementedError()
-    # q4()
+
     linear_regression = LinearRegression()
 
     x_range = []
@@ -207,8 +218,8 @@ if __name__ == '__main__':
     fig.update_xaxes(ticksuffix="%", title_text="percents of training-set")
     fig.update_yaxes(title_text="loss over test-set")
     fig.update_layout(title_text="average loss as function of training size with error ribbon")
-    # fig.write_image("loss.png")
-    fig.show()
+    fig.write_image("loss.png")
+    # fig.show()
     # print(x)
     #
     # plt.scatter(x, loss_mean)
