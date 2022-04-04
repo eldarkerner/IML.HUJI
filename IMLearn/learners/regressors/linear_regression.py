@@ -53,20 +53,11 @@ class LinearRegression(BaseEstimator):
         """
         # raise NotImplementedError()
 
-        # number_of_features = X.shape[1]
-        # self.coefs_ = np.zeros(number_of_features + 1)
-        # self.coefs_ = np.linalg.pinv(X) @ y
-
-        # if not self.include_intercept_:
-        #     self.coefs_[0] = 0
-
         if self.include_intercept_:
             inter = np.ones((X.shape[0], 1))
             X = np.concatenate((inter, X), axis=1)
 
-        U, Sigma, transpose_V = np.linalg.svd(X, full_matrices=False)
-        inv_sigma = np.linalg.pinv(np.diag(Sigma))
-        self.coefs_ = np.transpose(transpose_V) @ inv_sigma @ np.transpose(U) @ y
+        self.coefs_ = np.linalg.pinv(X) @ y
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """

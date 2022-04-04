@@ -85,27 +85,6 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
     """
     # raise NotImplementedError()
 
-    # varY = np.std(y)
-    #
-    # choosen_features = ["sqft_living", "lat"]
-    #
-    # for i, feature_name in enumerate(choosen_features):
-    #     feature = X.loc[:, feature_name]
-    #
-    #     var_feature = np.std(feature)
-    #     cov_featureY = np.cov(feature, y)
-    #
-    #     pearson_correlation = cov_featureY / (var_feature * varY)
-    #
-    #     print(feature.shape)
-    #     print(pearson_correlation)
-    #     print(varY, var_feature)
-    #     print(cov_featureY)
-    #
-    #     plt.plot(feature, pearson_correlation)
-    #     plt.title("Pearson Correlation between " + feature_name + " and the response")
-    #     plt.savefig(output_path + feature_name)
-
     X = X.loc[:, ~(X.columns.str.contains('^zipcode_', case=False) |
                    X.columns.str.contains('^ten_years_built_', case=False))]
 
@@ -118,13 +97,6 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
         print(feature_name)
         print(pearson_correlation)
 
-        # plt.scatter(X[feature_name], y)
-        # plt.title("Pearson Correlation: " + feature_name + " and the response: " +
-        #           str(pearson_correlation) + "\n")
-        # # fig.write_image(output_path + "/" + feature_name + ".png")
-        # plt.show()
-        # plt.savefig(output_path + "/" + feature_name)
-
         fig = go.Figure([go.Scatter(x=X[feature_name],
                                     y=y,
                                     mode='markers')])
@@ -134,30 +106,6 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
         fig.update_layout(title_text="Pearson Correlation: " + feature_name + " and the response: " +
                                      str(pearson_correlation) + "\n")
         fig.write_image(output_path + "/" + feature_name + ".png")
-
-# def q4():
-#     fraction = np.linspace(0.1, 1, 91)
-#     lr = LinearRegression()
-#     con = np.zeros(91)
-#     mean_loss = np.zeros(91)
-#
-#     for j in range(len(fraction)):
-#         loss = np.zeros(10)
-#         for i in range(10):
-#             train_x["price"] = train_y
-#             sampled_train = train_x.sample(frac=fraction[j])
-#             # print(train_x)
-#             # print(sampled_train)
-#             lr.fit(sampled_train.drop("price", axis=1), sampled_train.price)
-#             loss[i] = lr.loss(test_x.to_numpy(), test_y.to_numpy())
-#         con[j] = 2 * np.std(loss)
-#         mean_loss[j] = np.mean(loss)
-#
-#     fig = go.Figure(data=go.Scatter(x=100 * fraction, y=mean_loss,
-#                                     error_y=dict(type='data', array=con, visible=True)),
-#                     layout=go.Layout(title="AAAA"))
-#
-#     fig.show()
 
 
 if __name__ == '__main__':
@@ -220,53 +168,3 @@ if __name__ == '__main__':
     fig.update_layout(title_text="average loss as function of training size with error ribbon")
     fig.write_image("loss.png")
     # fig.show()
-    # print(x)
-    #
-    # plt.scatter(x, loss_mean)
-    # plt.scatter(x, loss_mean + 2 * loss_std)
-    # plt.scatter(x, loss_mean - 2 * loss_std)
-    # #
-    # plt.title("average loss scaled to the training data size along with potential error")
-    # plt.xlabel("% of the training")
-    # plt.ylabel("average loss")
-    #
-    # plt.savefig("average_loss")
-
-    # linear_regression = LinearRegression()
-    # loss_mean, loss_var = [], []
-    #
-    # for p in range(10, 101):
-    #     n = round(len(trainY) * (p / 100))
-    #
-    #     loss_samples = []
-    #     for _ in range(10):
-    #         sampled = train_df.sample(n)
-    #         linear_regression.fit(sampled.drop("price", axis=1), sampled["price"])
-    #         loss_samples.append(linear_regression.loss(testX, testY))
-    #         loss_samples = np.asarray(loss_samples)
-    #
-    #     loss_mean.append(loss_samples.mean())
-    #     loss_var.append(loss_samples.var())
-    #
-    #     loss_var = np.asarray(loss_var)
-    #     loss_mean = np.asarray(loss_mean)
-    # x_range = np.linspace(10, 100, 91)
-    #
-    # fig = go.Figure([go.Scatter(x=x_range,
-    #                             y=loss_mean,
-    #                             mode='lines'),
-    #                  go.Scatter(x=x_range,
-    #                             y=loss_mean + 2 * loss_var,
-    #                             mode='lines', marker=dict(color='#444'), showlegend=False),
-    #                  go.Scatter(x=x_range,
-    #                             y=loss_mean - 2 * loss_var,
-    #                             mode='lines', marker=dict(color='#444'), showlegend=False,
-    #                             fillcolor='rgba(68,68,68,0.3)', fill='tonexty')])
-    #
-    # fig.update_xaxes(ticksuffix="%", title_text="percents of training-set")
-    # fig.update_yaxes(title_text="loss over test-set")
-    # fig.update_layout(title_text="average loss as function of training size with error ribbon")
-    # fig.write_image("loss.png")
-    # print("done")
-
-

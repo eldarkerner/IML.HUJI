@@ -6,7 +6,6 @@ from IMLearn.utils import split_train_test
 
 import numpy as np
 import pandas as pd
-import plotly.graph_objects as go
 import plotly.express as px
 import plotly.io as pio
 pio.templates.default = "simple_white"
@@ -25,14 +24,6 @@ def load_data(filename: str) -> pd.DataFrame:
     Design matrix and response vector (Temp)
     """
     # raise NotImplementedError()
-    # three_in_four1 = {"January": [31, 31], "February": [28, 59], "March": [31, 90], "April": [30, 120], "May": [31, 151],
-    #                   "June": [30, 181], "July": [31, 212], "August": [31, 243], "September": [30, 273],
-    #                   "October": [31, 304], "November": [30, 334], "December": [31, 365]}
-    #
-    # once_in_four1 = {"January": [31, 31], "February": [29, 60], "March": [31, 91], "April": [30, 121], "May": [31, 152],
-    #                  "June": [30, 182], "July": [31, 213], "August": [31, 244], "September": [30, 274],
-    #                  "October": [31, 305], "November": [30, 335], "December": [31, 366]}
-
     three_in_four = [[0, 0], [31, 31], [28, 59], [31, 90], [30, 120], [31, 151], [30, 181],
                      [31, 212], [31, 243], [30, 273], [31, 304], [30, 334], [31, 365]]
 
@@ -41,10 +32,7 @@ def load_data(filename: str) -> pd.DataFrame:
 
     four_loop = [once_in_four, three_in_four, three_in_four, three_in_four]
 
-    full_data = pd.read_csv(filename, parse_dates=[2]).drop_duplicates()
-
-    for column in ["Day", "Month", "Year"]:
-        full_data = full_data[full_data[column] > 0]
+    full_data = pd.read_csv(filename, parse_dates=[2]).dropna().drop_duplicates()
 
     into_the_year = []
     for index, sample in enumerate(full_data["Date"]):
@@ -60,14 +48,16 @@ def load_data(filename: str) -> pd.DataFrame:
     full_data = pd.get_dummies(full_data, prefix='Country', columns=["Country"])
     full_data = pd.get_dummies(full_data, prefix='City', columns=["City"])
 
-    full_data = full_data[full_data["Temp"] < 50]
-    full_data = full_data[-20 < full_data["Temp"]]
+    full_data = full_data[full_data["Temp"] < 55]
+    full_data = full_data[-25 < full_data["Temp"]]
 
     return full_data
 
 
 if __name__ == '__main__':
     np.random.seed(0)
+
+    countries = ["South Africa", "Israel", "The Netherlands", "Jordan"]
     # Question 1 - Load and preprocessing of city temperature dataset
     # raise NotImplementedError()
     data = load_data("C:/Users/user/IML.HUJI/datasets/City_Temperature.csv")
@@ -106,7 +96,7 @@ if __name__ == '__main__':
     # raise NotImplementedError()
     stds = [[], [], [], []]
     means = [[], [], [], []]
-    for j, country in enumerate(["South Africa", "Israel", "The Netherlands", "Jordan"]):
+    for j, country in enumerate(countries):
         for i in range(1, 13):
             month_i = data[data["Month_" + str(i)] == 1]
             filtered = month_i[month_i["Country_" + country] == 1]
@@ -124,5 +114,42 @@ if __name__ == '__main__':
     # Question 4 - Fitting model for different values of `k`
     # raise NotImplementedError()
 
-    # Question 5 - Evaluating fitted model on different countries
+    y_label = "Temp"
+    x = Israel_data.drop(columns=[y_label])
+    y = Israel_data[y_label]
+    train_x, train_y, test_x, test_y = split_train_test(x, y, 0.75)
+
+    train_x = train_x.DayOfYear
+    test_x = test_x.DayOfYear
+
+    losses = []
+    for k in range(1, 11):
+        poly = PolynomialFitting(k)
+        poly.fit(train_x.to_numpy(), train_y.to_numpy())
+        loss_k = poly.loss(test_x.to_numpy(), test_y.to_numpy())
+        loss_k = round(loss_k, 2)
+        print(loss_k)
+        losses.append(loss_k)
+
+    plt.bar(range(1, 11), losses)
+    plt.xlabel("k")
+    plt.ylabel("loss")
+    plt.title("loss as for k")
+    plt.show()
+# Question 5 - Evaluating fitted model on different countries
     # raise NotImplementedError()
+    best_k = min(losses)
+
+    poly_best_k = PolynomialFitting(int(best_k))
+    poly_best_k.fit(Israel_data.DayOfYear, Israel_data.Temp)
+
+    errors = []
+    for country in countries:
+        country_j = data[data["Country_" + country] == 1]
+        errors.append(poly_best_k.loss(country_j.DayOfYear, country_j.Temp))
+
+    plt.bar(countries, errors)
+    plt.xlabel("country")
+    plt.ylabel("error")
+    plt.title("error in country as for Israel fit")
+    plt.show()
