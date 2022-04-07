@@ -56,9 +56,9 @@ def load_data(filename: str):
     full_data = pd.get_dummies(full_data, prefix='ten_years_built_', columns=['ten_years_built'])
 
     # removing extreme cases so won't extra affect the model
-    full_data = full_data[full_data["bedrooms"] < 20]
-    full_data = full_data[full_data["sqft_lot"] < 1250000]
-    full_data = full_data[full_data["sqft_lot15"] < 500000]
+    full_data = full_data[full_data["bedrooms"] < 18]
+    full_data = full_data[full_data["sqft_lot"] < 1000000]
+    full_data = full_data[full_data["sqft_lot15"] < 600000]
 
     x = full_data.drop(columns=[y_label])
     y = full_data[y_label]
