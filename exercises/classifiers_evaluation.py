@@ -1,3 +1,6 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
 from IMLearn.learners.classifiers import Perceptron, LDA, GaussianNaiveBayes
 from typing import Tuple
 from utils import *
@@ -30,6 +33,12 @@ def load_dataset(filename: str) -> Tuple[np.ndarray, np.ndarray]:
 
 
 def run_perceptron():
+
+    def print_loss_iter(fit: Perceptron, sample: np.ndarray, label: int):
+        perceptron.fitted_ = True
+        losses.append(perceptron.loss(x, y))
+        perceptron.fitted_ = False
+
     """
     Fit and plot fit progression of the Perceptron algorithm over both the linearly separable and inseparable datasets
 
@@ -38,14 +47,37 @@ def run_perceptron():
     """
     for n, f in [("Linearly Separable", "linearly_separable.npy"), ("Linearly Inseparable", "linearly_inseparable.npy")]:
         # Load dataset
-        raise NotImplementedError()
+        # raise NotImplementedError()
+
+        data = np.load("C:/Users/user/IML.HUJI/datasets/" + f)
+
+        x, y = [], []   # np.zeros((len(data), 2)), np.zeros((len(data), 1))
+
+        # for index, row in enumerate(data):
+        #     x[index] = row[:2]
+        #     y[index] = row[2]
+
+        for row in data:
+            x.append(row[:2])
+            y.append(row[2])
 
         # Fit Perceptron and record loss in each fit iteration
+        # raise NotImplementedError()
         losses = []
-        raise NotImplementedError()
+        perceptron = Perceptron(callback=print_loss_iter)
+
+        x = np.array(x)
+        y = np.array(y)
+
+        perceptron.fit(x, y)
 
         # Plot figure of loss as function of fitting iteration
-        raise NotImplementedError()
+        # raise NotImplementedError()
+        plt.plot(range(len(losses)), losses)
+        plt.title(n + " loss as a function of number of fitting iteration")
+        plt.xlabel("number of iteration")
+        plt.ylabel("loss")
+        plt.show()
 
 
 def get_ellipse(mu: np.ndarray, cov: np.ndarray):
@@ -79,25 +111,77 @@ def compare_gaussian_classifiers():
     """
     for f in ["gaussian1.npy", "gaussian2.npy"]:
         # Load dataset
-        raise NotImplementedError()
+        # raise NotImplementedError()
+        x, y = load_dataset("C:/Users/user/IML.HUJI/datasets/" + f)
 
         # Fit models and predict over training set
-        raise NotImplementedError()
+        # raise NotImplementedError()
+        lda = LDA()
+        gnb = GaussianNaiveBayes()     # TODO: change to gnb
+
+        lda.fit(x, y)
+        gnb.fit(x, y)
+
+        pred_lda = lda.predict(x)
+        pred_gnb = gnb.predict(x)
 
         # Plot a figure with two suplots, showing the Gaussian Naive Bayes predictions on the left and LDA predictions
         # on the right. Plot title should specify dataset used and subplot titles should specify algorithm and accuracy
         # Create subplots
+        # raise NotImplementedError()
         from IMLearn.metrics import accuracy
-        raise NotImplementedError()
-
-        # Add traces for data-points setting symbols and colors
-        raise NotImplementedError()
-
-        # Add `X` dots specifying fitted Gaussians' means
-        raise NotImplementedError()
+        # main_graph, (ax1, ax2) = plt.subplots(1, 2)
+        # ax1.scatter(range(300), pred_gnb, marker='P', color='blue')
+        # ax1.set_title("Gaussian Naive Bayes, accuracy: " + str(accuracy(y, pred_gnb)))
+        #
+        # ax2.scatter(range(300), pred_lda, marker='P', color='blue')
+        # ax2.set_title("LDA, accuracy: " + str(accuracy(y, pred_lda)))
+        #
+        # # Add traces for data-points setting symbols and colors
+        # # raise NotImplementedError()
+        # ax1.scatter(range(300), y, color='green')
+        # ax2.scatter(range(300), y, color='green')
+        #
+        # # Add `X` dots specifying fitted Gaussians' means
+        # # raise NotImplementedError()
+        # ax1.plot(gnb.pi_[0], gnb.pi_[1], marker='X', color='black')
+        # ax2.plot(lda.pi_[0], lda.pi_[1], marker='X', color='black')
 
         # Add ellipses depicting the covariances of the fitted Gaussians
-        raise NotImplementedError()
+        # raise NotImplementedError()
+        # go.Figure(data=get_ellipse(gnb.pi_, gnb.cov_)).show()
+        # go.Figure(data=get_ellipse(lda.pi_, lda.cov_)).show()
+        # get_ellipse(lda.pi_, lda.cov_).show()
+
+        # main_graph.suptitle("Graph for: " + str(f))
+        # plt.show()
+
+        sub_fig1 = go.Scatter(x=x[:, 0], y=x[:, 1],
+                              marker=dict(symbol=np.uint32(y).tolist(), color=np.uint32(pred_lda)),
+                              mode='markers',
+                              text=['True class: ' + str(y[i]) + ' Predicted class: ' + str(pred_lda[i])
+                                    for i in range(x.shape[0])],
+                              hovertemplate='%{text}')
+
+        sub_fig2 = go.Scatter(x=x[:, 0], y=x[:, 1],
+                              marker=dict(symbol=np.uint32(y).tolist(), color=np.uint32(pred_gnb)),
+                              mode='markers',
+                              text=['True class: ' + str(y[i]) + ' Predicted class: ' + str(pred_gnb[i])
+                                    for i in range(x.shape[0])],
+                              hovertemplate='%{text}')
+
+        main_fig = make_subplots(rows=1, cols=2,
+                                 subplot_titles=("LDA: accuracy = " + str(accuracy(y, pred_lda)),
+                                                 "GNB: accuracy = " + str(accuracy(y, pred_gnb))))
+
+        print(lda.pi_.shape, lda.cov_.shape, gnb.pi_.shape, gnb.vars_.shape, lda.mu_.shape)
+        main_fig.append_trace(sub_fig1, row=1, col=1)
+        main_fig.append_trace(get_ellipse(lda.mu_.T, lda.cov_), row=1, col=1)
+        main_fig.add_trace(sub_fig2, row=1, col=2)
+        main_fig.append_trace(get_ellipse(gnb.pi_, gnb.vars_), row=1, col=2)
+        main_fig.update_layout(title_text="Graph for " + str(f), showlegend=False)
+
+        main_fig.show()
 
 
 if __name__ == '__main__':
