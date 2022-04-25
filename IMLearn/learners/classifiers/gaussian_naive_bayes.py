@@ -93,17 +93,14 @@ class GaussianNaiveBayes(BaseEstimator):
         # raise NotImplementedError()
         n_classes = len(self.classes_)
         n_samples = X.shape[0]
+        n_features = X.shape[1]
 
         likelihoods = np.zeros((n_samples, n_classes))
         for k in range(n_classes):
-            log_pi = np.log(self.pi_[k])
-
-            for i in range(n_samples):
-                x = X[i]
-
-                # print(log_pi.shape, x.shape, ((x - self.mu_.T[k]) ** 2).shape, self.vars_[k].shape)
-                # (x - self.mu_.T[k]) ** 2 - 2 * self.vars_[k]
-                likelihoods[i, k] = log_pi - np.sum((x - self.mu_.T[k]) ** 2 + 2 * self.vars_[k])
+            det_cov = self.vars_[k][0] * self.vars_[k][1]
+            coef = self.pi_[k] * np.sqrt(1 / ((2 * np.pi) ** n_features * det_cov))
+            inv_cov = np.linalg.inv(self.vars_[k] * np.identity(n_features))
+            likelihoods[:, k] = coef * np.exp(-0.5 * np.diag((X - self.mu_.T[k]) @ inv_cov @ (X - self.mu_.T[k]).T))
 
         return likelihoods
 

@@ -130,31 +130,6 @@ def compare_gaussian_classifiers():
         # Create subplots
         # raise NotImplementedError()
         from IMLearn.metrics import accuracy
-        # main_graph, (ax1, ax2) = plt.subplots(1, 2)
-        # ax1.scatter(range(300), pred_gnb, marker='P', color='blue')
-        # ax1.set_title("Gaussian Naive Bayes, accuracy: " + str(accuracy(y, pred_gnb)))
-        #
-        # ax2.scatter(range(300), pred_lda, marker='P', color='blue')
-        # ax2.set_title("LDA, accuracy: " + str(accuracy(y, pred_lda)))
-        #
-        # # Add traces for data-points setting symbols and colors
-        # # raise NotImplementedError()
-        # ax1.scatter(range(300), y, color='green')
-        # ax2.scatter(range(300), y, color='green')
-        #
-        # # Add `X` dots specifying fitted Gaussians' means
-        # # raise NotImplementedError()
-        # ax1.plot(gnb.pi_[0], gnb.pi_[1], marker='X', color='black')
-        # ax2.plot(lda.pi_[0], lda.pi_[1], marker='X', color='black')
-
-        # Add ellipses depicting the covariances of the fitted Gaussians
-        # raise NotImplementedError()
-        # go.Figure(data=get_ellipse(gnb.pi_, gnb.cov_)).show()
-        # go.Figure(data=get_ellipse(lda.pi_, lda.cov_)).show()
-        # get_ellipse(lda.pi_, lda.cov_).show()
-
-        # main_graph.suptitle("Graph for: " + str(f))
-        # plt.show()
 
         sub_fig1 = go.Scatter(x=x[:, 0], y=x[:, 1],
                               marker=dict(symbol=np.uint32(y).tolist(), color=np.uint32(pred_lda)),
@@ -174,14 +149,23 @@ def compare_gaussian_classifiers():
                                  subplot_titles=("LDA: accuracy = " + str(accuracy(y, pred_lda)),
                                                  "GNB: accuracy = " + str(accuracy(y, pred_gnb))))
 
-        print(lda.pi_.shape, lda.cov_.shape, gnb.pi_.shape, gnb.vars_.shape, lda.mu_.shape)
         main_fig.append_trace(sub_fig1, row=1, col=1)
-        main_fig.append_trace(get_ellipse(lda.mu_.T, lda.cov_), row=1, col=1)
-        main_fig.add_trace(sub_fig2, row=1, col=2)
-        main_fig.append_trace(get_ellipse(gnb.pi_, gnb.vars_), row=1, col=2)
-        main_fig.update_layout(title_text="Graph for " + str(f), showlegend=False)
+        main_fig.append_trace(sub_fig2, row=1, col=2)
 
+        main_fig.append_trace(go.Scatter(x=lda.mu_.T[:, 0], y=lda.mu_.T[:, 1],
+                                         marker=dict(symbol='x', size=14), mode='markers'), row=1, col=1)
+        main_fig.append_trace(go.Scatter(x=gnb.mu_.T[:, 0], y=gnb.mu_.T[:, 1],
+                                         marker=dict(symbol='x', size=14), mode='markers'), row=1, col=2)
+
+        for class_i in range(len(lda.classes_)):
+            main_fig.append_trace(get_ellipse(lda.mu_.T[class_i, :], lda.cov_), row=1, col=1)
+
+        for class_i in range(len(gnb.classes_)):
+            main_fig.append_trace(get_ellipse(gnb.mu_.T[class_i, :], np.diag(gnb.vars_[class_i])), row=1, col=2)
+
+        main_fig.update_layout(title_text="Graph for " + str(f), showlegend=False)
         main_fig.show()
+        main_fig.write_image("graph_"+str(f)+".jpeg")
 
 
 if __name__ == '__main__':
