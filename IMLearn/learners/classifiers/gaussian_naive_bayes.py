@@ -97,7 +97,9 @@ class GaussianNaiveBayes(BaseEstimator):
 
         likelihoods = np.zeros((n_samples, n_classes))
         for k in range(n_classes):
-            det_cov = self.vars_[k][0] * self.vars_[k][1]
+            det_cov = 1
+            for i in range(n_features):
+                det_cov *= self.vars_[k][i]
             coef = self.pi_[k] * np.sqrt(1 / ((2 * np.pi) ** n_features * det_cov))
             inv_cov = np.linalg.inv(self.vars_[k] * np.identity(n_features))
             likelihoods[:, k] = coef * np.exp(-0.5 * np.diag((X - self.mu_.T[k]) @ inv_cov @ (X - self.mu_.T[k]).T))

@@ -80,31 +80,14 @@ class Perceptron(BaseEstimator):
             X = np.concatenate((inter, X), axis=1)
 
         self.coefs_ = np.zeros(X.shape[1])
-        # print(X.shape, self.coefs_.shape, y.shape)
 
         iter_counter = 0
         while iter_counter < self.max_iter_ and np.any(np.sign(X @ self.coefs_) - y):
             wrong_index = np.nonzero(np.sign(X @ self.coefs_) - y)[0][0]
-            # print(wrong_index)
             self.coefs_ += X[wrong_index] * y[wrong_index]
             iter_counter += 1
 
             self.callback_(self, X[0], y[0])
-
-        # for t in range(self.max_iter_):
-        #     exist = False
-        #     x_i, y_i = None, None
-        #     for i in range(len(y)):
-        #         if y[i] * self.coefs_ * X[i][:] <= 0:
-        #             exist = True
-        #             x_i = X[i][:]
-        #             y_i = y[i]
-        #             break
-        #
-        #     if exist:
-        #         self.coefs_ += x_i * y_i
-        #     else:
-        #         break
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
