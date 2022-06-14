@@ -64,7 +64,8 @@ class LogisticRegression(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        raise NotImplementedError()
+        # raise NotImplementedError()
+        return np.sign(self.predict_proba(X))
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
         """
@@ -80,7 +81,11 @@ class LogisticRegression(BaseEstimator):
         probabilities: ndarray of shape (n_samples,)
             Probability of each sample being classified as `1` according to the fitted model
         """
-        raise NotImplementedError()
+        # raise NotImplementedError()
+        if self.include_intercept_:
+            inter_x = np.ones((X.shape[0], 1))
+            X = np.concatenate((inter_x, X), axis=1)
+        return 1 / (1 + np.exp(-X @ self.coefs_))
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -99,4 +104,6 @@ class LogisticRegression(BaseEstimator):
         loss : float
             Performance under misclassification error
         """
-        raise NotImplementedError()
+        # raise NotImplementedError()
+        from IMLearn.metrics import misclassification_error
+        return misclassification_error(y, self.predict(X))
