@@ -126,15 +126,19 @@ class GradientDescent:
         w_best, w_avg, w_t, w_tPlus1 = np.zeros(X.shape[1]), np.zeros(X.shape[1]), \
                                        np.zeros(X.shape[1]), np.zeros(X.shape[1])
         delta = np.inf
+        best_computed_output = np.inf
+
         while num_iter < self.max_iter_ and delta > self.tol_:
             w_t = w_tPlus1
             w_tPlus1 -= self.learning_rate_.lr_step(num_iter) * f.compute_jacobian()
+            f.weights = w_tPlus1
             delta = np.linalg.norm(w_t - w_tPlus1, ord=2)
             num_iter += 1
 
             w_avg += w_tPlus1
-            if True:  # TODO: check how to describe "best"
+            if f.compute_output() < best_computed_output:
                 w_best = w_tPlus1
+                best_computed_output = f.compute_output()
 
             self.callback_(self, w_tPlus1, f.compute_output(X, y), f.compute_jacobian(w_tPlus1, X, y), num_iter,
                            self.learning_rate_.lr_step(), delta)
