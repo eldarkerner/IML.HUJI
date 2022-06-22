@@ -122,29 +122,28 @@ class GradientDescent:
         """
         # raise NotImplementedError()
 
-        num_iter = 0
-        w_best, w_avg, w_t, w_tPlus1 = np.zeros(X.shape[1]), np.zeros(X.shape[1]), \
-                                       np.zeros(X.shape[1]), np.zeros(X.shape[1])
-        delta = np.inf
+        w_best = None
+        w_avg = f.weights
         best_computed_output = np.inf
+        delta = np.inf
+        num_iter = 1
 
-        while num_iter < self.max_iter_ and delta > self.tol_:
-            w_t = w_tPlus1
-            w_tPlus1 -= self.learning_rate_.lr_step(num_iter) * f.compute_jacobian()
-            f.weights = w_tPlus1
-            delta = np.linalg.norm(w_t - w_tPlus1, ord=2)
+        while num_iter <= self.max_iter_ and delta > self.tol_:
+            w_t = f.weights
+            f.weights = w_t - self.learning_rate_.lr_step(t=num_iter) * f.compute_jacobian(X=X, y=y)
+
+            if f.compute_output(X=X, y=y) < best_computed_output:
+                w_best = f.weights
+                best_computed_output = f.compute_output(X=X, y=y)
+
+            w_avg += f.weights
             num_iter += 1
+            delta = np.linalg.norm(f.weights - w_t, ord=2)
 
-            w_avg += w_tPlus1
-            if f.compute_output() < best_computed_output:
-                w_best = w_tPlus1
-                best_computed_output = f.compute_output()
-
-            self.callback_(self, w_tPlus1, f.compute_output(X, y), f.compute_jacobian(w_tPlus1, X, y), num_iter,
-                           self.learning_rate_.lr_step(), delta)
+            self.callback_(self, val=f.compute_output(X=X, y=y), weight=f.weights)
 
         if self.out_type_ == "last":
-            return w_tPlus1
+            return f.weights
         elif self.out_type_ == "best":
             return w_best
         else:

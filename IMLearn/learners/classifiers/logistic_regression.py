@@ -1,3 +1,4 @@
+import copy
 from typing import NoReturn
 import numpy as np
 from IMLearn import BaseEstimator
@@ -88,7 +89,24 @@ class LogisticRegression(BaseEstimator):
         Fits model using specified `self.optimizer_` passed when instantiating class and includes an intercept
         if specified by `self.include_intercept_
         """
-        raise NotImplementedError()
+        # raise NotImplementedError()
+        if self.include_intercept_:
+            inter_x = np.ones((X.shape[0], 1))
+            X = np.concatenate((inter_x, X), axis=1)
+
+        initWeights = np.random.randn(X.shape[1]) / np.sqrt(X.shape[1])
+
+        lr = LogisticModule(copy.deepcopy(initWeights))
+        if self.penalty_ == "l2":
+            l2 = L2(copy.deepcopy(initWeights))
+            self.coefs_ = self.solver_.fit(RegularizedModule(lr, l2, lam=self.lam_, weights=copy.deepcopy(initWeights),
+                                                             include_intercept=self.include_intercept_), X, y)
+        elif self.penalty_ == "l1":
+            l1 = L1(copy.deepcopy(initWeights))
+            self.coefs_ = self.solver_.fit(RegularizedModule(lr, l1, lam=self.lam_, weights=copy.deepcopy(initWeights),
+                                                             include_intercept=self.include_intercept_), X, y)
+        else:
+            self.coefs_ = self.solver_.fit(lr, X, y)
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -105,7 +123,7 @@ class LogisticRegression(BaseEstimator):
             Predicted responses of given samples
         """
         # raise NotImplementedError()
-        return np.sign(self.predict_proba(X))
+        return self.predict_proba(X) > self.alpha_
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
         """
